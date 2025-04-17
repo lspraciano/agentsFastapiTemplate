@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "agentsfastapitemplate"
+version = "0.1.0"
+description = ""
+authors = ["Lucas Praciano <luskcct@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.12"
+langchain = "^0.3.23"
+langgraph = "^0.3.30"
+langchain-openai = "^0.3.13"
+dynaconf = "^3.2.10"
+toml = "^0.10.2"
+uvicorn = "^0.34.1"
+langgraph-checkpoint-mongodb = "^0.1.3"
+langchain-google-genai = "^2.1.3"
+pytz = "^2025.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

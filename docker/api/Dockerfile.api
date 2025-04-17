@@ -1,0 +1,15 @@
+FROM python:3.12.5 as python-base
+
+RUN mkdir -p /api/agents_template
+WORKDIR /api/agents_template
+
+RUN pip install poetry
+
+COPY ../../poetry.lock /api/agents_template
+COPY ../../pyproject.toml /api/agents_template
+
+COPY ../../app /api/agents_template/app
+COPY ../../configuration /api/agents_template/configuration
+
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-root

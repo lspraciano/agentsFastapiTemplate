@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/api/agents_template
+    networks:
+      - agents-template-network
+    environment:
+      - AGENTSTEMPLATE_APP_RUNNING_MODE=development
+      - GEMINI_API_KEY=...
+      - MONGO_URI=...
+      - MONGO_DATABASE=...
+      - MONGO_COLLECTION_STATE=...
+    command: [ "/bin/bash", "-c", "uvicorn app.main:app --reload --proxy-headers --host 0.0.0.0 --port 8000" ]
+
+
+networks:
+  agents-template-network:
+    driver: bridge
+
+
