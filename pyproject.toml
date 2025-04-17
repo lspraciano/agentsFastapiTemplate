@@ -3,6 +3,7 @@ name = "agentsfastapitemplate"
 version = "0.1.0"
 description = ""
 authors = ["Lucas Praciano <luskcct@gmail.com>"]
+documentation = "https://github.com/lspraciano/agentsFastapiTemplate"
 readme = "README.md"
 
 [tool.poetry.dependencies]
