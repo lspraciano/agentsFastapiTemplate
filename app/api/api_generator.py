@@ -1,16 +1,16 @@
 from fastapi import FastAPI
 
-from app.api.endpoints.router_register import api_routers
 from app.api.events.lifespan import lifespan
-from app.core.helpers.exceptions_handlers.register_exceptions_handlers import register_exceptions_handlers
-from app.core.helpers.logger.http.http_logger import register_http_logger
-from app.core.helpers.metadata.metadata import get_project_metadata
-from app.core.middleware.cors.register_cors import register_cors
+from app.api.router.router_register import api_routers
+from app.core.shared.exceptions_handlers.register_exceptions_handlers import register_exceptions_handlers
+from app.core.shared.metadata.metadata import get_project_metadata
+from app.infrastructure.middleware.cors.register_cors_middleware import register_cors_middleware
+from app.infrastructure.middleware.http.http_logger_middleware import register_http_logger_middleware
+from app.infrastructure.middleware.http.register_real_ip_middleware import register_real_ip_middleware
 from configuration.configs import settings
 
 
 def api_factory() -> FastAPI:
-    origins: list = ["*"]
     project_metadata: dict = get_project_metadata()
 
     current_api: FastAPI = FastAPI(
@@ -40,7 +40,11 @@ def api_factory() -> FastAPI:
         },
     )
 
-    register_http_logger(
+    register_real_ip_middleware(
+        app=current_api
+    )
+
+    register_http_logger_middleware(
         app=current_api
     )
 
@@ -49,9 +53,8 @@ def api_factory() -> FastAPI:
         prefix=f"{settings.API_PREFIX}"
     )
 
-    register_cors(
+    register_cors_middleware(
         app=current_api,
-        origins=origins
     )
 
     register_exceptions_handlers(

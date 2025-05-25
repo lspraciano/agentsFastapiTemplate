@@ -7,6 +7,6 @@ from fastapi import FastAPI
 async def lifespan(
         app: FastAPI
 ):
-    print("Running StartUp Events")
+    print("StartUp Application")
     yield
-    print("Running ShutDown Events")
+    print("Stopping Application")

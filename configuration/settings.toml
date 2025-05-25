@@ -3,9 +3,11 @@ SERVER_RELOAD = 1
 PROXY_ROOT_PATH = ""
 API_PREFIX = ""
 ENABLE_CORS = 1
-LLM_MODEL = "gemini-2.0-flash"
-#LLM_MODEL = "gemini-2.5-pro"
+CORS_ORIGINS = ["*"]
+LLM_MODEL = "gpt-4o"
 LLM_SERVICE_TIMEOUT = 60
+MONGO_DATABASE = "basiquinho"
+MONGO_COLLECTION_STATE = "state"
 
 
 [production]
