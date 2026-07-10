@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import Response
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, Response
 
 from app.nexus.exceptions.nexus_exceptions import (
     GraphResponseMissingError,
@@ -35,11 +35,13 @@ class ExceptionHandlersRegister:
         request: Request,
         exc: Exception,
     ) -> Response:
-        raise HTTPException(
+        return JSONResponse(
             status_code=502,
-            detail={
-                "error_code": GraphResponseMissingError.code,
-                "message": "O agente não produziu resposta.",
+            content={
+                "detail": {
+                    "error_code": GraphResponseMissingError.code,
+                    "message": "O agente não produziu resposta.",
+                }
             },
         )
 
@@ -48,11 +50,13 @@ class ExceptionHandlersRegister:
         request: Request,
         exc: Exception,
     ) -> Response:
-        raise HTTPException(
+        return JSONResponse(
             status_code=502,
-            detail={
-                "error_code": StructuredResponseRetryExceededError.code,
-                "message": "O agente não conseguiu produzir o formato esperado.",
+            content={
+                "detail": {
+                    "error_code": StructuredResponseRetryExceededError.code,
+                    "message": "O agente não conseguiu produzir o formato esperado.",
+                }
             },
         )
 
@@ -61,11 +65,13 @@ class ExceptionHandlersRegister:
         request: Request,
         exc: Exception,
     ) -> Response:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail={
-                "error_code": NexusError.code,
-                "message": "Erro interno do agente.",
+            content={
+                "detail": {
+                    "error_code": NexusError.code,
+                    "message": "Erro interno do agente.",
+                }
             },
         )
 
@@ -74,10 +80,12 @@ class ExceptionHandlersRegister:
         request: Request,
         exc: Exception,
     ) -> Response:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail={
-                "error_code": "internal_error",
-                "message": "Erro interno inesperado.",
+            content={
+                "detail": {
+                    "error_code": "internal_error",
+                    "message": "Erro interno inesperado.",
+                }
             },
         )

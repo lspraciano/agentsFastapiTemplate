@@ -1,5 +1,5 @@
 [default]
-SERVER_RELOAD = true
+SERVER_RELOAD = false
 PROXY_ROOT_PATH = ""
 API_PREFIX = ""
 ENABLE_CORS = true
@@ -14,5 +14,6 @@ LANGFUSE_HOST = "https://us.cloud.langfuse.com"
 [production]
 
 [development]
+SERVER_RELOAD = true
 
 [sandbox]

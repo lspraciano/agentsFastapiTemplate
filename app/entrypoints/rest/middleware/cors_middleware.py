@@ -19,10 +19,12 @@ class CorsMiddleware:
         if not settings.ENABLE_CORS:
             return
 
+        allow_credentials: bool = "*" not in self._origins
+
         self._app.add_middleware(
             middleware_class=FastAPICorsMiddleware,
             allow_origins=self._origins,
-            allow_credentials=True,
+            allow_credentials=allow_credentials,
             allow_methods=["*"],
             allow_headers=["*"],
         )

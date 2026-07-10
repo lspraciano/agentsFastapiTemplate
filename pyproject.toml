@@ -2,7 +2,7 @@
 name = "agentsfastapitemplate"
 version = "0.1.0"
 description = "Agent-centric FastAPI template with LangGraph"
-readme = "README.md"
+readme = "docs/README.md"
 requires-python = ">=3.13"
 dependencies = [
     "dynaconf>=3.3.2",
