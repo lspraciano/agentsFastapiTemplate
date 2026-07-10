@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 
 from app.entrypoints.rest.api_generator import ApiFactory
+from app.infrastructure.logger.app_logger import AppLogger
+
+AppLogger().configure()
 
 app: FastAPI = ApiFactory().app
 

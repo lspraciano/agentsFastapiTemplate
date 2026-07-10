@@ -73,9 +73,5 @@ def calculate_tool(expression: str) -> dict:
 
         return {"result": result}
 
-    except (
-            ValueError,
-            SyntaxError,
-            ZeroDivisionError
-    ) as error:
+    except (ValueError, SyntaxError, ZeroDivisionError) as error:
         return {"error": str(error)}

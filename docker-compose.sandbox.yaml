@@ -1,0 +1,20 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - AGENTS_TEMPLATE_ENVIRONMENT=sandbox
+      - AGENTS_TEMPLATE_OPENAI_API_KEY
+      - AGENTS_TEMPLATE_LANGFUSE_PUBLIC_KEY
+      - AGENTS_TEMPLATE_LANGFUSE_SECRET_KEY
+    networks:
+      - agents-template-network
+    restart: unless-stopped
+
+
+networks:
+  agents-template-network:
+    driver: bridge

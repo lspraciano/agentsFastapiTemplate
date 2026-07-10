@@ -32,7 +32,7 @@ class AppConfig:
             environments=[
                 "production",
                 "development",
-                "testing",
+                "sandbox",
             ],
             env_switcher=f"{self.APP_ENV_VAR_PREFIX}_ENVIRONMENT",
             validators=[

@@ -11,7 +11,9 @@ class CorsMiddleware:
         origins: list[str] | None = None,
     ):
         self._app: FastAPI = app
-        self._origins: list[str] = origins if origins is not None else settings.CORS_ORIGINS
+        self._origins: list[str] = (
+            origins if origins is not None else settings.CORS_ORIGINS
+        )
 
     def register(self) -> None:
         if not settings.ENABLE_CORS:

@@ -1,11 +1,16 @@
 from typing import Any
 
+from langchain_core.messages import AIMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END
 from langgraph.types import Command
 
-from app.nexus.agents.agent_calculator.agent_calculator_schema import AgentCalculatorSchema
-from app.nexus.agents.agent_calculator.agent_calculator_system_prompt import agent_calculator_system_prompt
+from app.nexus.agents.agent_calculator.agent_calculator_schema import (
+    AgentCalculatorSchema,
+)
+from app.nexus.agents.agent_calculator.agent_calculator_system_prompt import (
+    agent_calculator_system_prompt,
+)
 from app.nexus.agents.base_agent import BaseAgent
 from app.nexus.tools.calculate_tool import calculate_tool
 from configuration.configs import settings
@@ -33,8 +38,14 @@ class AgentCalculator(BaseAgent):
         structured: Any,
         state: dict,
     ) -> Command:
+        ai_message: AIMessage = AIMessage(
+            content=structured.response,
+            name=self.agent.name,
+        )
+
         update: dict = {
-            "graph_response": structured.agent_calculator_response,
+            **structured.model_dump(exclude_defaults=True),
+            "messages": [ai_message],
         }
 
         return Command(

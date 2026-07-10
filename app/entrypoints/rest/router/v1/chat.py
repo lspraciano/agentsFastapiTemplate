@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Request, status
 
-from app.entrypoints.rest.schemas.chat_schemas import ChatRequestSchema, ChatResponseSchema
+from app.entrypoints.rest.schemas.chat_schemas import (
+    ChatRequestSchema,
+    ChatResponseSchema,
+)
 from app.nexus.contracts.nexus_input import NexusInput
 from app.nexus.contracts.nexus_output import NexusOutput
 from app.nexus.executor.graph_executor import GraphExecutor

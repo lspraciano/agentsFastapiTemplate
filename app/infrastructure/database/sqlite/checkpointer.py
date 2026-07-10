@@ -1,3 +1,4 @@
+import logging
 from contextlib import AsyncExitStack
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -5,6 +6,8 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from configuration.configs import settings
+
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 
 class CheckpointerProvider:
@@ -22,9 +25,17 @@ class CheckpointerProvider:
             await checkpointer.setup()
 
             self._stack = stack
+            logger.info(
+                msg="Checkpointer SQLite inicializado.",
+                extra={"path": settings.SQLITE_PATH},
+            )
             return checkpointer
 
-        except Exception:
+        except Exception as error:
+            logger.warning(
+                msg="SQLite indisponível, usando checkpointer em memória.",
+                extra={"error": str(error)},
+            )
             return InMemorySaver()
 
     async def close(self) -> None:

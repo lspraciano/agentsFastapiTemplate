@@ -7,14 +7,12 @@ CORS_ORIGINS = ["*"]
 LLM_MODEL = "gpt-5-mini"
 LLM_SERVICE_TIMEOUT = 60
 SQLITE_PATH = "checkpoints.sqlite"
+LOG_LEVEL = "INFO"
+LANGFUSE_HOST = "https://us.cloud.langfuse.com"
 
 
 [production]
 
-
-
 [development]
 
-
-
-[testing]
+[sandbox]

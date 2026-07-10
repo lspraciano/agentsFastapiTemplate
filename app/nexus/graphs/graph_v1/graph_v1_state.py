@@ -7,4 +7,4 @@ from langgraph.graph.message import add_messages
 class GraphV1State(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     conversation_id: str
-    graph_response: str
+    response: str
