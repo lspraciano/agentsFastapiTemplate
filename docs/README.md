@@ -8,7 +8,7 @@ Três camadas com responsabilidades bem separadas:
 
 | Camada | Pasta | Responsabilidade |
 |---|---|---|
-| **nexus** | `app/nexus` | Núcleo de agentes: grafos, agentes, tools, middlewares. Não conhece transporte. |
+| **nexus** | `app/nexus` | Núcleo de agentes: grafos, agentes, tools, middlewares, exceções de domínio. Não conhece transporte. |
 | **entrypoints** | `app/entrypoints` | Adaptadores de transporte (hoje REST/FastAPI). Traduz o mundo externo para os contratos do `nexus`. |
 | **infrastructure** | `app/infrastructure` | Preocupações técnicas: checkpointer (SQLite), logger, observabilidade (Langfuse). |
 
@@ -119,7 +119,7 @@ Request:
 }
 ```
 
-Response:
+Response (sucesso):
 
 ```json
 {
@@ -129,6 +129,62 @@ Response:
 ```
 
 O `conversation_id` é usado como `thread_id` do checkpointer (memória da conversa) e como `session_id` no Langfuse (agrupamento de traces por conversa).
+
+### Respostas de erro
+
+Todos os erros seguem o formato padronizado via `HTTPException`:
+
+```json
+{
+  "detail": {
+    "error_code": "<código>",
+    "message": "<descrição>"
+  }
+}
+```
+
+| Status | `error_code` | Situação |
+|---|---|---|
+| 502 | `graph_response_missing` | O agente terminou sem produzir resposta |
+| 502 | `structured_response_retry_exceeded` | O LLM não produziu o formato esperado após N tentativas |
+| 503 | `service_unavailable` | O executor não foi inicializado (falha no startup) |
+| 500 | `nexus_error` | Erro de domínio não mapeado |
+| 500 | `internal_error` | Erro inesperado fora do domínio |
+| 422 | — | Corpo do request inválido (FastAPI/Pydantic) |
+
+## Exceções de domínio
+
+As exceções do `nexus` ficam em `app/nexus/exceptions/nexus_exceptions.py` e herdam de `NexusError`. A camada REST é responsável por traduzi-las em HTTP — o `nexus` não conhece status codes.
+
+```
+NexusError
+├── GraphResponseMissingError
+└── StructuredResponseRetryExceededError
+```
+
+Para adicionar uma nova exceção de domínio:
+
+1. Crie a classe herdando `NexusError` em `nexus_exceptions.py` com um `code` único.
+2. Levante-a no lugar apropriado dentro do `nexus`.
+3. Registre um handler em `ExceptionHandlersRegister` (`app/entrypoints/rest/exception/exception_handlers.py`).
+
+## Injeção de dependência
+
+O `GraphExecutor` é injetado nos endpoints via `Depends()`, usando o alias `GraphExecutorDependence` de `app/entrypoints/rest/dependencies/graph_executor_dependence.py`.
+
+```python
+async def chat_(
+    message: ChatRequestSchema,
+    executor: GraphExecutorDependence,
+) -> ChatResponseSchema:
+    ...
+```
+
+Isso permite sobrescrever o executor em testes sem subir Langfuse, SQLite ou LLM real:
+
+```python
+app.dependency_overrides[graph_executor_dependence] = lambda: FakeExecutor()
+```
 
 ## Observabilidade
 
@@ -142,23 +198,30 @@ Logs estruturados em JSON (`app/infrastructure/logger`), incluindo os do uvicorn
 
 ```
 app/
-├── main.py                      # entrypoint: configura logger e cria o app
-├── nexus/                       # núcleo de agentes (agnóstico a transporte)
-│   ├── contracts/               # NexusInput / NexusOutput
-│   ├── executor/                # GraphExecutor (fachada do grafo)
-│   ├── graphs/                  # definição dos grafos e state
-│   ├── agents/                  # BaseAgent + agentes concretos
-│   ├── middlewares/             # middlewares dos agentes
-│   └── tools/                   # ferramentas
+├── main.py                          # entrypoint: configura logger e cria o app
+├── nexus/                           # núcleo de agentes (agnóstico a transporte)
+│   ├── contracts/                   # NexusInput / NexusOutput
+│   ├── exceptions/                  # NexusError e subclasses (nexus_exceptions.py)
+│   ├── executor/                    # GraphExecutor (fachada do grafo)
+│   ├── graphs/                      # definição dos grafos e state
+│   ├── agents/                      # BaseAgent + agentes concretos
+│   ├── middlewares/                 # middlewares dos agentes
+│   └── tools/                       # ferramentas
 ├── entrypoints/
-│   └── rest/                    # FastAPI: rotas, schemas, middleware, lifespan
+│   └── rest/                        # FastAPI
+│       ├── dependencies/            # providers injetados via Depends()
+│       ├── exception/               # ExceptionHandlersRegister
+│       ├── events/                  # lifespan (startup / shutdown)
+│       ├── middleware/              # CORS e outros middlewares HTTP
+│       ├── router/                  # rotas por versão
+│       └── schemas/                 # schemas de request/response
 └── infrastructure/
-    ├── database/sqlite/         # checkpointer
-    ├── logger/                  # logging JSON estruturado
-    └── observability/langfuse/  # provider do Langfuse
-configuration/                   # Dynaconf (settings.toml, .secrets.toml)
-docker/api/Dockerfile.api        # imagem multi-stage (uv)
-docker-compose.*.yaml            # dev / sandbox / prod
+    ├── database/sqlite/             # checkpointer
+    ├── logger/                      # logging JSON estruturado
+    └── observability/langfuse/      # provider do Langfuse
+configuration/                       # Dynaconf (settings.toml, .secrets.toml)
+docker/api/Dockerfile.api            # imagem multi-stage (uv)
+docker-compose.*.yaml                # dev / sandbox / prod
 ```
 
 ## Criando um novo agente
@@ -169,3 +232,11 @@ docker-compose.*.yaml            # dev / sandbox / prod
 4. Registre o agente como nó no grafo (`app/nexus/graphs`).
 
 Os middlewares obrigatórios (`ToolLoopGuardMiddleware` e `StructuredResponseRetryMiddleware`) já são injetados pelo `BaseAgent`.
+
+## Criando um novo grafo
+
+1. Crie a classe do grafo em `app/nexus/graphs/` com um `NAME: str` único e um método `compile(checkpointer) -> CompiledStateGraph`.
+2. No `lifespan` (`app/entrypoints/rest/events/lifespan.py`), compile o novo grafo e crie o `GraphExecutor` correspondente.
+3. Crie a rota e a dependency que injeta o executor correto.
+
+O `GraphExecutor` é genérico — ele roda qualquer `CompiledStateGraph`. A escolha de qual grafo usar é responsabilidade do `lifespan` e dos endpoints, não do executor.

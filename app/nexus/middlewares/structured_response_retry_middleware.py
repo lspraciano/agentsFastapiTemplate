@@ -6,9 +6,7 @@ from langchain_core.messages import HumanMessage
 from langgraph.runtime import Runtime
 from pydantic import BaseModel
 
-
-class StructuredResponseRetryExceededError(Exception):
-    pass
+from app.nexus.exceptions.nexus_exceptions import StructuredResponseRetryExceededError
 
 
 class StructuredResponseRetryMiddleware(AgentMiddleware):

@@ -7,12 +7,9 @@ from langgraph.graph.state import CompiledStateGraph
 
 from app.nexus.contracts.nexus_input import NexusInput
 from app.nexus.contracts.nexus_output import NexusOutput
+from app.nexus.exceptions.nexus_exceptions import GraphResponseMissingError
 
 logger: logging.Logger = logging.getLogger(name=__name__)
-
-
-class GraphResponseMissingError(Exception):
-    pass
 
 
 class GraphExecutor:

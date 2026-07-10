@@ -21,7 +21,10 @@ def graph_executor_dependence(request: Request) -> GraphExecutor:
 
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Serviço indisponível.",
+            detail={
+                "error_code": "service_unavailable",
+                "message": "Serviço indisponível.",
+            },
         )
 
     return executor

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.entrypoints.rest.exception.exception_handlers import ExceptionHandlersRegister
 from app.entrypoints.rest.events.lifespan import lifespan
 from app.entrypoints.rest.middleware.cors_middleware import CorsMiddleware
 from app.entrypoints.rest.router.router_register import RouterRegister
@@ -10,6 +11,7 @@ class ApiFactory:
     def __init__(self):
         self.app: FastAPI = self._create_app()
         self._register_middlewares()
+        self._register_exception_handlers()
         self._register_routers()
 
     @staticmethod
@@ -31,6 +33,9 @@ class ApiFactory:
 
     def _register_middlewares(self) -> None:
         CorsMiddleware(app=self.app).register()
+
+    def _register_exception_handlers(self) -> None:
+        ExceptionHandlersRegister().register(app=self.app)
 
     def _register_routers(self) -> None:
         self.app.include_router(
