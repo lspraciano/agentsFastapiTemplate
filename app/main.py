@@ -1,17 +1,20 @@
 from fastapi import FastAPI
 
-from app.api.api_generator import api_factory
-from configuration.configs import settings
+from app.entrypoints.rest.api_generator import ApiFactory
+from app.infrastructure.logger.app_logger import AppLogger
 
-app: FastAPI = api_factory()
+AppLogger().configure()
+
+app: FastAPI = ApiFactory().app
 
 if __name__ == "__main__":
     import uvicorn
+
+    from configuration.configs import settings
 
     uvicorn.run(
         app="app.main:app",
         host="0.0.0.0",
         port=8000,
-        log_level="warning",
         reload=settings.SERVER_RELOAD,
     )

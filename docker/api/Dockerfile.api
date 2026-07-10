@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1.9
+
+FROM python:3.13-slim-bookworm AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /api/agents_template
+
+COPY pyproject.toml uv.lock ./
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev
+
+
+FROM python:3.13-slim-bookworm AS runtime
+
+WORKDIR /api/agents_template
+
+RUN useradd --create-home --uid 1000 appuser
+
+COPY --chown=appuser:appuser . .
+
+COPY --from=builder --chown=appuser:appuser /api/agents_template/.venv /api/agents_template/.venv
+
+ENV PATH="/api/agents_template/.venv/bin:$PATH"
+
+USER appuser
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000"]
