@@ -3,12 +3,10 @@ import logging
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
-from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph.state import CompiledStateGraph
 
 from app.nexus.contracts.nexus_input import NexusInput
 from app.nexus.contracts.nexus_output import NexusOutput
-from app.nexus.graphs.graph_v1.graph_v1 import GraphV1
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -20,10 +18,10 @@ class GraphResponseMissingError(Exception):
 class GraphExecutor:
     def __init__(
         self,
-        checkpointer: BaseCheckpointSaver | None = None,
+        graph: CompiledStateGraph,
         callbacks: list[BaseCallbackHandler] | None = None,
     ):
-        self._graph: CompiledStateGraph = GraphV1().compile(checkpointer=checkpointer)
+        self._graph: CompiledStateGraph = graph
         self._callbacks: list[BaseCallbackHandler] = callbacks or []
 
     async def run(

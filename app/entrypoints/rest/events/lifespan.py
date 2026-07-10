@@ -4,10 +4,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.graph.state import CompiledStateGraph
 
 from app.infrastructure.database.sqlite.checkpointer import CheckpointerProvider
 from app.infrastructure.observability.langfuse.langfuse_provider import LangfuseProvider
 from app.nexus.executor.graph_executor import GraphExecutor
+from app.nexus.graphs.graph_v1.graph_v1 import GraphV1
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -21,8 +23,10 @@ async def lifespan(app: FastAPI):
     checkpointer_provider: CheckpointerProvider = CheckpointerProvider()
     checkpointer: BaseCheckpointSaver = await checkpointer_provider.build()
 
+    graph: CompiledStateGraph = GraphV1().compile(checkpointer=checkpointer)
+
     app.state.graph_executor = GraphExecutor(
-        checkpointer=checkpointer,
+        graph=graph,
         callbacks=[langfuse_handler],
     )
     logger.info(msg="Aplicação iniciada.")

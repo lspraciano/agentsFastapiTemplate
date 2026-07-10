@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, status
 
+from app.entrypoints.rest.dependencies.graph_executor_dependence import GraphExecutorDependence
 from app.entrypoints.rest.schemas.chat_schemas import (
     ChatRequestSchema,
     ChatResponseSchema,
 )
 from app.nexus.contracts.nexus_input import NexusInput
 from app.nexus.contracts.nexus_output import NexusOutput
-from app.nexus.executor.graph_executor import GraphExecutor
 
 router: APIRouter = APIRouter(
     tags=["Chat"],
@@ -20,11 +20,9 @@ router: APIRouter = APIRouter(
     response_model=ChatResponseSchema,
 )
 async def chat_(
-    request: Request,
     message: ChatRequestSchema,
+    executor: GraphExecutorDependence,
 ) -> ChatResponseSchema:
-    executor: GraphExecutor = request.app.state.graph_executor
-
     nexus_input: NexusInput = NexusInput(
         user_message=message.user_message,
         conversation_id=message.conversation_id,
