@@ -233,6 +233,18 @@ docker-compose.*.yaml                # dev / sandbox / prod
 
 Os middlewares obrigatórios (`ToolLoopGuardMiddleware` e `StructuredResponseRetryMiddleware`) já são injetados pelo `BaseAgent`.
 
+### Execução e Ciclo de Vida do Agente
+
+O `BaseAgent` oferece duas formas de execução:
+
+1. **Como nó de um Grafo (LangGraph)**:
+   O `BaseAgent` implementa o método especial `__call__(state: dict) -> Command`. Quando o agente é adicionado como um nó no grafo, o LangGraph o invoca diretamente. Esse método executa o agente e retorna um objeto `Command` para controlar o fluxo do grafo.
+
+2. **Execução Direta (Sem Grafo / Testes)**:
+   O método assíncrono `run(state: dict) -> AgentRunResult` permite executar o agente diretamente. Ele retorna um objeto `AgentRunResult` contendo:
+   - `structured_response`: A resposta estruturada gerada pelo LLM (conforme o schema definido).
+   - `messages`: A lista de mensagens (histórico/transcrição) geradas durante a execução do turno do agente (incluindo chamadas de ferramentas e respostas).
+
 ## Criando um novo grafo
 
 1. Crie a classe do grafo em `app/nexus/graphs/` com um `NAME: str` único e um método `compile(checkpointer) -> CompiledStateGraph`.
