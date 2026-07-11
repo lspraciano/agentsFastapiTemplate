@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any
 
 from langchain.agents import AgentState, create_agent
@@ -12,6 +13,12 @@ from app.nexus.middlewares.structured_response_retry_middleware import (
     StructuredResponseRetryMiddleware,
 )
 from app.nexus.middlewares.tool_loop_guard_middleware import ToolLoopGuardMiddleware
+
+
+@dataclass(frozen=True)
+class AgentRunResult:
+    structured_response: BaseModel
+    messages: list[BaseMessage]
 
 
 class BaseAgent(ABC):
@@ -44,10 +51,10 @@ class BaseAgent(ABC):
             state_schema=self.state_schema,
         )
 
-    async def __call__(
+    async def run(
         self,
         state: dict,
-    ) -> Command:
+    ) -> AgentRunResult:
         messages: list[BaseMessage] = self._get_messages(state=state)
 
         system_prompt: str = self._build_system_prompt(state=state)
@@ -64,10 +71,24 @@ class BaseAgent(ABC):
 
         agent_result: dict = await self.agent.ainvoke(input=invoke_input)
 
-        structured: Any = agent_result["structured_response"]
+        structured_response: BaseModel = agent_result["structured_response"]
+        transcript_messages: list[BaseMessage] = agent_result["messages"]
+
+        return AgentRunResult(
+            structured_response=structured_response,
+            messages=transcript_messages,
+        )
+
+    async def __call__(
+        self,
+        state: dict,
+    ) -> Command:
+        run_result: AgentRunResult = await self.run(state=state)
+
+        structured_response: BaseModel = run_result.structured_response
 
         return self._build_command(
-            structured=structured,
+            structured=structured_response,
             state=state,
         )
 
