@@ -43,7 +43,8 @@ class StructuredResponseRetryMiddleware(AgentMiddleware):
                     name="structured_response_retry",
                 )
             )
-            response = await handler(request)
+
+            response: ModelResponse = await handler(request)
 
         if self._is_valid(response=response):
             return response
